@@ -31,6 +31,8 @@ h1 span { color: #697c71; font-size: 12px; font-weight: 500; margin-left: 9px; l
 .actions { display: flex; flex-wrap: wrap; gap: 9px; flex-shrink: 0; }
 .controls p { font-size: 13px; line-height: 1.7; color: #5e7266; margin: 0; }
 .controls { flex-wrap: wrap; }
+.reception-method { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #65796e; }
+.reception-method select { max-width: 100%; }
 .debug-toggle { display: flex; align-items: center; gap: 5px; font-size: 12px; white-space: nowrap; cursor: pointer; min-height: 44px; }
 .debug-toggle input { width: 17px; height: 17px; accent-color: #176347; }
 .debug-toggle input:focus-visible { outline: 3px solid #17775b; outline-offset: 3px; }
@@ -42,7 +44,7 @@ h1 span { color: #697c71; font-size: 12px; font-weight: 500; margin-left: 9px; l
 .debug-panel details { margin-top: 20px; }
 .debug-panel pre { max-height: 420px; overflow-y: auto; }
 .notice { margin: 14px 0; border-radius: 8px; padding: 12px 16px; font-size: 12px; line-height: 1.85; background: #e8efeb; color: #506759; overflow-wrap: anywhere; }
-.notice.error { background: #fff0ed; color: #a23727; }
+.notice.error { background: #fff0ed; color: #a23727; white-space: pre-wrap; }
 .demo-notice { background: #fff4d9; color: #835c16; }
 .monitor { margin-top: 22px; }
 .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }

@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#f3f6f4">
   <meta name="description" content="高度化PICSのBLEアドバタイズをブラウザで受信・可視化するWeb Bluetoothモニター。">
   <title>PICS Viewer · Web Bluetooth</title>
-  <link rel="stylesheet" href="styles.css">
-  <script type="module" src="app.mjs"></script>
+  <link rel="stylesheet" href="styles.css?v=20261031-2">
+  <script type="module" src="app.mjs?v=20261031-2"></script>
 </head>
 <body>
   <div class="shell">
@@ -24,6 +24,7 @@
       </section>
 
       <section class="panel controls" aria-label="受信操作">
+        <label class="reception-method" for="reception-method">受信方式<select id="reception-method"><option value="scan">周囲をまとめてスキャン</option><option value="watch">デバイスを選んで広告を監視</option></select></label>
         <div class="actions">
           <button id="start" class="primary" type="button">スキャン開始</button>
           <button id="demo" type="button">デモを試す</button>
@@ -34,13 +35,14 @@
       </section>
 
       <aside id="compatibility" class="notice" aria-label="動作環境"></aside>
+      <p id="watch-notice" class="notice" hidden>選択した1台だけを監視します。GATT接続は行いません。デバッグでは名前やRSSIで受信確認でき、メーカー生データは許可を要求したPICSの0x01CEのみ表示できます。デバイス一覧の表示だけでは、広告の受信確認にはなりません。</p>
       <noscript><p class="notice">このアプリを使用するにはJavaScriptを有効にしてください。</p></noscript>
       <p id="error" class="notice error" role="alert" hidden></p>
       <p id="demo-notice" class="notice demo-notice" hidden>デモデータ · 以下は架空のデータです。実際の信号状態ではありません。</p>
 
       <section id="debug-panel" class="panel debug-panel" aria-labelledby="debug-title" hidden>
         <div class="section-heading"><div><p class="eyebrow">BLUETOOTH DIAGNOSTICS</p><h2 id="debug-title">BLEスキャンの受信確認</h2></div><button id="debug-clear" type="button">ログを消去</button></div>
-        <p class="caption">PICS以外も含め、ブラウザが通知したすべてのBLEアドバタイズを表示します。表示は約1秒ごとに更新します。デモの生成データは含みません。</p>
+        <p class="caption">PICS以外も含め、選択した受信方式でブラウザが通知したBLEアドバタイズを表示します。表示は約1秒ごとに更新します。デモの生成データは含みません。</p>
         <p id="debug-status" class="notice" role="status">実際のアドバタイズはまだ受信していません。</p>
         <dl class="packet-meta debug-stats">
           <div><dt>受信イベント数</dt><dd id="debug-count">0</dd></div>
@@ -95,15 +97,16 @@
           <li>端末のBluetoothを有効にし、「スキャン開始」からブラウザとOSの受信権限を許可してください。</li>
           <li>対応信号機の近くで受信を待ちます。複数の交差点を受信した場合は一覧から選択できます。</li>
         </ol>
-        <p>このアプリは <code>requestLEScan()</code> を使い、メーカーID <code>0x01CE</code> のデータを解析します。GATT接続は行いません。スキャン許可は周囲のアドバタイズ全体が対象です。通常は対象外メーカーのデータを破棄しますが、デバッグモードでは受信確認のため表示します。</p>
+        <p>「周囲をまとめてスキャン」は <code>requestLEScan()</code> を使い、メーカーID <code>0x01CE</code> のデータを解析します。GATT接続は行いません。スキャン許可は周囲のアドバタイズ全体が対象です。通常は対象外メーカーのデータを破棄しますが、デバッグモードでは受信確認のため表示します。</p>
+        <p>通常のデバイス選択一覧には機器が出るのに全体スキャンで見つからない場合は、「デバイスを選んで広告を監視」を試してください。<code>requestDevice()</code> で1台を選び、<code>watchAdvertisements()</code> で広告を受信します。こちらも実験的機能が必要です。PICS機器が選択一覧に出ない場合には使えません。選択後も広告を送信し続ける機器で確認してください。</p>
         <p>PICS信号機が近くにない場合は「デバッグモード」をオンにして「スキャン開始」を押してください。受信イベント数が増えればBLEアドバタイズを受信できています。0件のままでもスキャン失敗とは限りません。周囲にアドバタイズを送信するBLE機器があるか、権限やBluetooth設定を確認してください。ペアリング済み機器でも常時アドバタイズするとは限りません。</p>
         <p>ページを非表示にすると受信を停止します。再開するときは「スキャン開始」を押してください。5秒以上信号データが届かない場合は「更新なし」と表示します。</p>
         <p>データはこのページ内だけで処理し、サーバーには送信しません。再読み込みや実機・デモの切り替えで受信データは消去されます。</p>
-        <p><a href="https://googlechrome.github.io/samples/web-bluetooth/scan.html" target="_blank" rel="noreferrer">Chrome公式のスキャンサンプル</a> · <a href="https://github.com/whatwg/bluetooth/blob/main/implementation-status.md" target="_blank" rel="noreferrer">Web Bluetooth実装状況</a></p>
+        <p><a href="https://googlechrome.github.io/samples/web-bluetooth/scan.html" target="_blank" rel="noreferrer">Chrome公式のスキャンサンプル</a> · <a href="https://googlechrome.github.io/samples/web-bluetooth/watch-advertisements.html" target="_blank" rel="noreferrer">1台の広告監視サンプル</a> · <a href="https://github.com/whatwg/bluetooth/blob/main/implementation-status.md" target="_blank" rel="noreferrer">Web Bluetooth実装状況</a></p>
       </details>
       <p class="safety-note">観測・開発用のモニターです。横断時は現地の信号と周囲の状況を確認してください。</p>
     </main>
-    <footer><span>PICS Viewer</span><span>Web Bluetooth Edition · 受信データの可視化</span></footer>
+    <footer><span>PICS Viewer</span><span>Web Bluetooth Edition · 2026.10.31.2</span></footer>
   </div>
 </body>
 </html>

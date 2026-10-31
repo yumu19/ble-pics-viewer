@@ -33,7 +33,7 @@ https://github.com/user-attachments/assets/71077409-656c-471e-b071-970c37c89461
 python3 -m http.server 8000 --bind 127.0.0.1 --directory web
 ```
 
-<http://localhost:8000> を開いてください。実機受信には実験的なWeb Bluetooth Scanning API（`requestLEScan`）に対応したChromeと、実験的機能の有効化が必要です。通常のWeb Bluetooth対応だけでは受信できません。Bluetoothを使わず画面を確認できるデモもあります。
+<http://localhost:8000> を開いてください。実機受信には、実験的なWeb Bluetoothの広告受信APIに対応したChromeと、実験的機能の有効化が必要です。周囲をまとめて受信する `requestLEScan` と、選択した1台を監視する `watchAdvertisements` を切り替えられます。通常のWeb Bluetooth対応だけでは広告を受信できません。Bluetoothを使わず画面を確認できるデモもあります。
 
 対応環境・設定・解析仕様・テスト方法は [web/README.md](web/README.md) を参照してください。
 

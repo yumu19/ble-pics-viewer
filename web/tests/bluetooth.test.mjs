@@ -93,3 +93,33 @@ test('platform error messages distinguish permissions and missing scanning suppo
   assert.match(scanErrorMessage({ name: 'SecurityError' }), /HTTPS/);
   assert.match(scanErrorMessage(new Error('hardware failure')), /hardware failure/);
 });
+
+test('PROMPT_CANCELED does not assume the user dismissed the prompt or Bluetooth is off', () => {
+  for (const spelling of ['canceled', 'cancelled']) {
+    const error = new DOMException(`User ${spelling} the permission prompt.`, 'InvalidStateError');
+    const message = scanErrorMessage(error);
+    assert.match(message, /スキャン許可を完了できません/);
+    assert.match(message, /ダイアログ表示失敗/);
+    assert.match(message, /スキャン要求の重複/);
+    assert.ok(message.includes(`${error.name}: ${error.message}`));
+    assert.doesNotMatch(message, /Bluetoothが無効/);
+  }
+});
+
+test('InvalidStateError explains an inactive document and retains unrecognized errors', () => {
+  const inactive = new DOMException('The document is not active.', 'InvalidStateError');
+  assert.match(scanErrorMessage(inactive), /このタブを表示/);
+  const unknown = new DOMException('Adapter is not ready.', 'InvalidStateError');
+  const message = scanErrorMessage(unknown);
+  assert.match(message, /Bluetooth権限/);
+  assert.ok(message.includes('InvalidStateError: Adapter is not ready.'));
+});
+
+test('known error categories retain the original browser error for diagnostics', () => {
+  const error = new DOMException('requestLEScan() call is blocked by user.', 'NotAllowedError');
+  const message = scanErrorMessage(error);
+  assert.match(message, /権限/);
+  assert.ok(message.includes(`${error.name}: ${error.message}`));
+  assert.match(scanErrorMessage('Unexpected failure'), /Unexpected failure/);
+  assert.doesNotThrow(() => scanErrorMessage(null));
+});

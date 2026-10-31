@@ -14,7 +14,10 @@ python3 -m http.server 8000 --bind 127.0.0.1 --directory web
 
 ## 実機で受信する
 
-本アプリに必要なのは、GATT接続APIではなく、実験的な **Web Bluetooth Scanning API**（`navigator.bluetooth.requestLEScan`）です。
+受信方式を2種類から選べます。どちらも広告の受信のみで、GATT接続は行いません。
+
+- **周囲をまとめてスキャン**: 実験的なWeb Bluetooth Scanning API（`navigator.bluetooth.requestLEScan`）を使用します。
+- **デバイスを選んで広告を監視**: `requestDevice()` で選択した1台を、実験的な `watchAdvertisements()` で監視します。全体スキャンが動作しない場合の代替として試せます。
 
 1. スキャンAPIに対応したChromeを利用します。公式の[実装状況](https://github.com/whatwg/bluetooth/blob/main/implementation-status.md)ではmacOS / Androidで実験的に提供されています。通常のWeb Bluetooth対応だけでは動作を保証できません。
 2. `chrome://flags/#enable-experimental-web-platform-features` を有効にしてChromeを再起動します。OS・ブラウザのバージョン・アダプターによっては有効化後もスキャンが動作しません。
@@ -22,9 +25,22 @@ python3 -m http.server 8000 --bind 127.0.0.1 --directory web
 4. ページを開き、「スキャン開始」を押してブラウザのスキャン許可を与えます。
 5. 高度化PICS信号機の近くで受信を待ちます。交差点を複数受信すると、画面右上の選択欄で切り替えられます。
 
-スキャンAPIの有無を画面に表示します。非対応環境ではスキャンボタンを無効にしますが、デモは利用できます。APIが存在してもプラットフォーム側で未実装の場合があり、開始エラーも画面に表示します。Safari / Firefoxでの実機受信は対象外です。
+選択した方式のAPIの有無を画面に表示します。非対応環境では開始ボタンを無効にしますが、デモは利用できます。APIが存在してもプラットフォーム側で未実装の場合があり、開始エラーも画面に表示します。Safari / Firefoxでの実機受信は対象外です。
 
 [Chrome公式スキャンサンプル](https://googlechrome.github.io/samples/web-bluetooth/scan.html)と同じく、`requestLEScan({ acceptAllAdvertisements: true, keepRepeatedDevices: true })` で繰り返し受信し、`advertisementreceived` の `manufacturerData.get(0x01CE)` をPICSとして解析します。許可は周囲のアドバタイズ全体が対象です。通常は対象外メーカーのデータを破棄し、デバッグモードを有効にした場合だけ受信確認用に保持・表示します。GATT接続・読み書き・信号機の操作は行いません。無線レベルのパッシブスキャンを指定するAPIではありません。
+
+### デバイス選択方式を使う
+
+URLに `?mode=watch` を付けると、最初からデバイス選択方式で開けます。画面下部のバージョン表示は `2026.10.31.2` です。この方式では上部に `requestDevice / watchAdvertisementsを検出しました`、開始ボタンに「デバイスを選んで監視」と表示されます。「スキャンAPIを検出しました」という旧案内が出る場合は、古いページ・スクリプトを読み込んでいます。公開先への反映を確認したうえで再読み込みしてください。HTMLと変更したスクリプト・CSSにバージョン付きURLを使用し、異なる版がキャッシュで混在するのを防いでいます。
+
+1. 停止中に「受信方式」を「デバイスを選んで広告を監視」に変更します。
+2. 受信確認の場合は「デバッグモード」をオンにします。
+3. 「デバイスを選んで監視」を押し、Chromeの選択画面で機器を1台選んで確定します。
+4. デバッグの受信イベント数が増えることを確認します。選択画面に機器が出ただけでは、広告受信の確認にはなりません。
+
+[Chrome公式の広告監視サンプル](https://googlechrome.github.io/samples/web-bluetooth/watch-advertisements.html)と同じAPIを使用します。`requestDevice({ acceptAllDevices: true, optionalManufacturerData: [0x01CE] })` でPICSのメーカー情報へのアクセスも要求し、選択したデバイスの `advertisementreceived` を受け取ります。`watchAdvertisements({ signal })` のAbortSignalで停止します。GATTの接続・読み書きは行いません。
+
+監視できるのは選択した1台だけで、全体スキャンと同等ではありません。PICS機器が選択一覧に表示されない場合は使えません。また、選択後に広告を送信しない機器では受信件数は増えません。デバッグではPICS以外の機器も名前・RSSI・イベント件数で確認できますが、メーカー生データの許可は `0x01CE` だけを要求しているため、他メーカーの生データは公開されません。サービスデータも許可状態に応じて省略されます。新たな方式が対象のMacで動作するかは実機確認が必要です。
 
 ## PICS信号機がない場所でスキャンを確認する
 
@@ -34,9 +50,26 @@ python3 -m http.server 8000 --bind 127.0.0.1 --directory web
 
 デバッグモードは、PICS以外も含むすべてのアドバタイズイベントを記録します。メーカー・サービスデータがないイベントも数えます。デバイス一覧には名称、ブラウザのデバイスID、RSSI、メーカーID、受信数、最終受信時刻を表示します。詳細ログにはメーカー・サービスデータの16進ダンプ、サービスUUID、送信出力（APIから提供された場合）を表示します。生データはAPIが公開した各データフィールドで、無線パケット全体ではありません。デバイスIDはMACアドレスではありません。
 
+記録対象は選択した受信方式が返すイベントです。デバイス選択方式では選択した1台だけが対象になります。
+
 スキャンの開始成功とアドバタイズの受信確認は区別して表示します。受信が0件でも、周囲に送信中のBLE機器がない可能性があり、失敗とは断定できません。アドバタイズを送信しているBLEビーコンや開発ボードなどを近くに置いて確認してください。ペアリング済みの機器も常にアドバタイズを送信するとは限りません。必要に応じてOSとブラウザのBluetooth権限も確認してください。
 
 表示は約1秒ごとに更新し、最新20イベントと最近受信した最大100デバイスをメモリー内に保持します。「メーカーID 0x01CE を含む」の件数は、このメーカーIDが存在するイベント数で、正常なPICSパケット数とは限りません。デモの合成データは一切含みません。「ログを消去」でスキャンを継続したまま件数をリセットできます。停止後はログを保持し、デバッグをオフにしたとき、スキャン・デモを新規開始したとき、再読み込み時に消去します。ログの外部送信や永続保存は行いません。
+
+## macOSでスキャン開始時にエラーになる場合
+
+1. 「システム設定 → Bluetooth」でBluetoothがオンであることを確認します。
+2. 「システム設定 → プライバシーとセキュリティ → Bluetooth」でGoogle Chromeの使用許可を確認します。Mac本体のBluetoothがオンでも、アプリへの許可は別です。[Appleの設定手順](https://support.apple.com/ja-jp/guide/mac-help/mchl211c911f/mac)
+3. 設定を変更した場合はChromeを `⌘Q` で終了してから開き直し、実験的機能の設定も確認します。
+4. このページを表示したまま「スキャン開始」を押し、許可ダイアログを閉じずにスキャンを許可します。
+
+エラーには日本語の案内と「ブラウザ詳細」を併記します。`InvalidStateError` はBluetoothの電源だけを意味するものではなく、許可ダイアログのキャンセルやページがアクティブでない場合にも使われます。[Chromiumのエラー定義](https://github.com/chromium/chromium/blob/main/third_party/blink/renderer/modules/bluetooth/bluetooth_error.cc)
+
+`User canceled the permission prompt.` は、ユーザーが閉じたときに加え、Chromeが許可ダイアログを生成できない場合やスキャン要求が重複した場合にも返されます。このメッセージだけでキャンセル操作やBluetooth権限の不許可とは断定できません。Chromeを完全終了して開き直し、通常のタブで試してください。ダイアログが表示されない場合は、macOS・Chromeのバージョンと公式サンプルでも同じエラーになるかを確認してください。[ダイアログ生成処理](https://github.com/chromium/chromium/blob/main/content/browser/bluetooth/bluetooth_device_scanning_prompt_controller.cc)、[スキャン要求処理](https://github.com/chromium/chromium/blob/main/content/browser/bluetooth/web_bluetooth_service_impl.cc)
+
+解消しない場合は、macOS・Chromeのバージョンと「ブラウザ詳細」の全文を確認してください。[Chrome公式スキャンサンプル](https://googlechrome.github.io/samples/web-bluetooth/scan.html)で「All Advertisements」を選択して実行すると、このアプリ以外でもスキャンできるかを切り分けられます。
+
+PythonのBleakで多数のBLE機器を検出でき、[Device Infoサンプル](https://googlechrome.github.io/samples/web-bluetooth/device-info.html)の一覧にも機器が出る一方、全体スキャンのダイアログだけが空になる場合は、通常のデバイス検出と `requestLEScan()` の動作差が確認できます。この場合は「デバイスを選んで広告を監視」を試してください。原因がChromeの特定の不具合であるとまでは断定できません。
 
 ## 表示内容
 
@@ -58,14 +91,14 @@ python3 -m http.server 8000 --bind 127.0.0.1 --directory web
 
 「停止」、ページの非表示、ページの離脱でスキャンまたはデモを停止します。自動再開はしません。ブラウザ側のスキャン終了も定期的に確認します。許可待ちで停止した場合は、後から許可されてもそのスキャンを即時停止します。
 
-受信データはブラウザのメモリー内のみで処理し、外部サーバーへの送信や永続保存は行いません。再読み込み、スキャンの新規開始、実機とデモの切り替えでデータを消去します。保持する交差点は最大100件で、上限を超えると最初に登録した交差点から削除します。
+受信データはブラウザのメモリー内のみで処理し、外部サーバーへの送信や永続保存は行いません。再読み込み、受信の新規開始、受信方式の変更、実機とデモの切り替えでデータを消去します。保持する交差点は最大100件で、上限を超えると最初に登録した交差点から削除します。デバイス選択時のサイトへのアクセス許可は、受信ログとは別にブラウザ側で管理されます。
 
 ## 構成・検証
 
 - `index.html` / `styles.css`: 日本語のレスポンシブ画面
 - `app.mjs`: 受信・表示・デモ制御
 - `pics.mjs`: パケット解析、交差点情報の保持、履歴、デモデータ生成
-- `bluetooth.mjs`: スキャン開始・停止、非同期の許可要求のキャンセル処理
+- `bluetooth.mjs`: 全体スキャン・選択デバイスの広告監視、開始・停止、非同期の許可要求のキャンセル処理
 - `debug.mjs`: 全メーカーの受信イベント・デバイス情報のデバッグ記録（件数制限付き）
 
 Node.js 18以降で、パーサー・情報保持・スキャン制御のテストを実行できます。

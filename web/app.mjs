@@ -2,7 +2,7 @@ import {
   MANUFACTURER_ID, STALE_AFTER_MS, SIGNAL_LABELS, processPics, hexDump,
   updateIntersection, recentHistory, demoPackets,
 } from './pics.mjs';
-import { AdvertisementScanner, scanErrorMessage } from './bluetooth.mjs';
+import { AdvertisementScanner, DeviceAdvertisementWatcher, scanErrorMessage } from './bluetooth.mjs?v=20261031-2';
 import { AdvertisementDiagnostics } from './debug.mjs';
 
 const $ = id => document.getElementById(id);
@@ -12,7 +12,17 @@ const timeFormat = new Intl.DateTimeFormat('ja-JP', {
   hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3,
   hourCycle: 'h23',
 });
-const supported = window.isSecureContext && typeof navigator.bluetooth?.requestLEScan === 'function';
+const scanSupported = window.isSecureContext && typeof navigator.bluetooth?.requestLEScan === 'function';
+const watchSupported = window.isSecureContext && typeof navigator.bluetooth?.requestDevice === 'function'
+  && typeof window.BluetoothDevice?.prototype.watchAdvertisements === 'function';
+const requestedMethod = new URLSearchParams(window.location.search).get('mode');
+if (requestedMethod === 'watch' || requestedMethod === 'scan') {
+  $('reception-method').value = requestedMethod;
+} else if (!scanSupported && watchSupported) {
+  $('reception-method').value = 'watch';
+}
+const watchingDevice = () => $('reception-method').value === 'watch';
+const supported = () => watchingDevice() ? watchSupported : scanSupported;
 let mode = 'idle';
 let selectedId = '';
 let packetCount = 0;
@@ -34,31 +44,38 @@ const signalCards = Array.from({ length: 6 }, (_, index) => {
   };
 });
 
-if (!window.isSecureContext) {
-  $('compatibility').textContent = '実機受信にはHTTPSまたはhttp://localhostが必要です。現在の環境ではデモを利用できます。';
-} else if (!supported) {
-  $('compatibility').textContent = 'この環境ではスキャンAPI（requestLEScan）を利用できません。対応するChromeで実験的機能を有効にしてください。詳しくは下の「動作環境・使い方」を確認してください。デモは利用できます。';
-} else {
-  $('compatibility').textContent = 'スキャンAPIを検出しました。実際の受信可否はOS・Bluetoothアダプター・権限に依存します。スキャン開始時に受信を許可してください。';
+function updateCompatibility() {
+  const api = watchingDevice() ? 'requestDevice / watchAdvertisements' : 'requestLEScan';
+  $('watch-notice').hidden = !watchingDevice();
+  if (!window.isSecureContext) {
+    $('compatibility').textContent = '実機受信にはHTTPSまたはhttp://localhostが必要です。現在の環境ではデモを利用できます。';
+  } else if (!supported()) {
+    $('compatibility').textContent = `この環境では選択した受信方式（${api}）を利用できません。対応するChromeで実験的機能を有効にしてください。詳しくは下の「動作環境・使い方」を確認してください。デモは利用できます。`;
+  } else {
+    $('compatibility').textContent = `${api}を検出しました。実際の受信可否はOS・Bluetoothアダプター・権限に依存します。開始操作後にブラウザの許可・選択画面で操作してください。`;
+  }
 }
+updateCompatibility();
 
 function setMode(next) {
   mode = next;
   $('mode').dataset.mode = mode;
-  $('mode').textContent = { idle: '停止中', requesting: '許可待ち', scanning: 'スキャン中', demo: 'デモ' }[mode];
-  $('start').disabled = !supported || mode === 'scanning' || mode === 'requesting';
+  $('mode').textContent = { idle: '停止中', requesting: '許可待ち', scanning: watchingDevice() ? '広告監視中' : 'スキャン中', demo: 'デモ' }[mode];
+  $('start').textContent = watchingDevice() ? 'デバイスを選んで監視' : 'スキャン開始';
+  $('start').disabled = !supported() || mode === 'scanning' || mode === 'requesting';
+  $('reception-method').disabled = mode !== 'idle';
   $('demo').disabled = mode === 'demo' || mode === 'requesting';
   $('stop').disabled = mode === 'idle';
   $('status').textContent = {
     idle: '停止中です。表示は最後に受信したデータです。',
-    requesting: 'ブラウザのスキャン許可を待っています…',
-    scanning: 'BLEスキャン実行中です。受信したメーカーID 0x01CE のデータを解析します。',
+    requesting: watchingDevice() ? 'デバイスの選択・広告監視の開始を待っています…' : 'ブラウザのスキャン許可を待っています…',
+    scanning: watchingDevice() ? `選択したデバイス「${receiver().device?.name || '名称なし'}」の広告を監視中です。GATT接続は行いません。` : 'BLEスキャン実行中です。受信したメーカーID 0x01CE のデータを解析します。',
     demo: '架空の交差点データを1秒ごとに更新しています。',
   }[mode];
   render();
 }
 
-const scanner = new AdvertisementScanner(navigator.bluetooth, {
+const receiverCallbacks = {
   onState: setMode,
   onAdvertisement(event) {
     if ($('debug-enabled').checked) diagnostics.record(event);
@@ -69,7 +86,12 @@ const scanner = new AdvertisementScanner(navigator.bluetooth, {
       rssi: Number.isFinite(event.rssi) ? event.rssi : null,
     });
   },
-});
+};
+const receivers = {
+  scan: new AdvertisementScanner(navigator.bluetooth, receiverCallbacks),
+  watch: new DeviceAdvertisementWatcher(navigator.bluetooth, receiverCallbacks),
+};
+const receiver = () => receivers[$('reception-method').value];
 
 function resetData(isDemo = false) {
   demoData = isDemo;
@@ -174,14 +196,14 @@ function renderDebug(now = Date.now()) {
   const age = lastTimestamp == null ? null : Math.max(0, Math.floor((now - lastTimestamp) / 1000));
   $('debug-last').textContent = lastTimestamp == null ? '—' : `${timeFormat.format(lastTimestamp)} · ${age}秒前`;
   let status;
-  if (!supported) {
-    status = 'スキャンAPIを利用できません。上の動作環境の案内を確認してください。';
-  } else if (mode === 'demo') {
+  if (mode === 'demo') {
     status = 'デモ表示中です。Bluetoothのスキャンは実行していません。実機の受信確認には「スキャン開始」を押してください。';
+  } else if (!supported()) {
+    status = '選択した受信方式のAPIを利用できません。上の動作環境の案内を確認してください。';
   } else if (mode === 'requesting') {
-    status = 'スキャン許可待ちです。スキャン開始はまだ確認できていません。';
+    status = watchingDevice() ? 'デバイス選択・広告監視の開始待ちです。実際の広告はまだ受信していません。' : 'スキャン許可待ちです。スキャン開始はまだ確認できていません。';
   } else if (mode === 'scanning' && count === 0) {
-    status = 'スキャン開始済み · 受信待ちです。実際のBLE受信はまだ確認できていません。周囲のBLE機器のアドバタイズ送信、OSとブラウザの権限を確認してください。';
+    status = watchingDevice() ? '広告監視開始済み · 選択したデバイスの広告はまだ受信していません。デバイスの選択成功と広告の受信成功は別です。送信を続けている機器で確認してください。' : 'スキャン開始済み · 受信待ちです。実際のBLE受信はまだ確認できていません。周囲のBLE機器のアドバタイズ送信、OSとブラウザの権限を確認してください。';
   } else if (mode === 'scanning') {
     status = age < 5
       ? 'BLEアドバタイズの受信を確認できました。PICS信号機がなくてもスキャン・受信できています。'
@@ -262,17 +284,17 @@ function renderHistory(entry, now) {
 function stopReception(message) {
   clearInterval(demoTimer);
   demoTimer = null;
-  scanner.stop();
+  receiver().stop();
   if (message) $('status').textContent = message;
 }
 
 $('start').addEventListener('click', async () => {
-  if (!supported || mode === 'requesting' || mode === 'scanning') return;
+  if (!supported() || mode === 'requesting' || mode === 'scanning') return;
   stopReception();
   resetData();
   try {
     // Called directly in this click handler to preserve transient user activation.
-    await scanner.start();
+    await receiver().start();
   } catch (error) {
     $('error').textContent = scanErrorMessage(error);
     $('error').hidden = false;
@@ -291,6 +313,11 @@ $('demo').addEventListener('click', () => {
   demoTimer = setInterval(tick, 1000);
 });
 $('stop').addEventListener('click', () => stopReception());
+$('reception-method').addEventListener('change', () => {
+  resetData(demoData);
+  updateCompatibility();
+  setMode(mode);
+});
 $('debug-enabled').addEventListener('change', () => {
   diagnostics.clear();
   // Remove rendered data as well when disabling diagnostics.
@@ -311,8 +338,8 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('pagehide', () => stopReception());
 setInterval(() => {
-  if (mode === 'scanning' && scanner.scan && !scanner.scan.active) {
-    stopReception('ブラウザがスキャンを停止しました。再開するにはスキャン開始を押してください。');
+  if (mode === 'scanning' && receiver().scan && !receiver().scan.active) {
+    stopReception('ブラウザが受信を停止しました。再開するには開始ボタンを押してください。');
   }
   render();
 }, 1000);
