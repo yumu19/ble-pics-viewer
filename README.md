@@ -27,6 +27,8 @@ https://github.com/user-attachments/assets/71077409-656c-471e-b071-970c37c89461
 
 ## Web Bluetooth版
 
+公開URL: [Web Bluetooth版を開く](https://yumu19.github.io/ble-pics-viewer/web/)
+
 `web`ディレクトリに、ブラウザで動く版を用意しています。追加のライブラリやビルドは不要です。
 
 ```bash
