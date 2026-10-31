@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f6f4">
+  <meta name="description" content="高度化PICSのBLEアドバタイズをブラウザで受信・可視化するWeb Bluetoothモニター。">
+  <title>PICS Viewer · Web Bluetooth</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.mjs"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="header">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">↗</span><div><p class="eyebrow">PEDESTRIAN INFORMATION & COMMUNICATION SYSTEM</p><h1>PICS Viewer <span>Web Bluetooth</span></h1></div></div>
+      <span id="mode" class="badge" role="status">停止中</span>
+    </header>
+
+    <main>
+      <section class="intro">
+        <p class="eyebrow">高度化PICS アドバタイズモニター</p>
+        <h2>交差点の信号を、ブラウザで。</h2>
+        <p>近くの高度化PICSから届く信号状態をリアルタイムに表示します。</p>
+      </section>
+
+      <section class="panel controls" aria-label="受信操作">
+        <div class="actions">
+          <button id="start" class="primary" type="button">スキャン開始</button>
+          <button id="demo" type="button">デモを試す</button>
+          <button id="stop" type="button" disabled>停止</button>
+        </div>
+        <label class="debug-toggle"><input id="debug-enabled" type="checkbox"> デバッグモード</label>
+        <p id="status" role="status">スキャン開始、またはデモを選んでください。</p>
+      </section>
+
+      <aside id="compatibility" class="notice" aria-label="動作環境"></aside>
+      <noscript><p class="notice">このアプリを使用するにはJavaScriptを有効にしてください。</p></noscript>
+      <p id="error" class="notice error" role="alert" hidden></p>
+      <p id="demo-notice" class="notice demo-notice" hidden>デモデータ · 以下は架空のデータです。実際の信号状態ではありません。</p>
+
+      <section id="debug-panel" class="panel debug-panel" aria-labelledby="debug-title" hidden>
+        <div class="section-heading"><div><p class="eyebrow">BLUETOOTH DIAGNOSTICS</p><h2 id="debug-title">BLEスキャンの受信確認</h2></div><button id="debug-clear" type="button">ログを消去</button></div>
+        <p class="caption">PICS以外も含め、ブラウザが通知したすべてのBLEアドバタイズを表示します。表示は約1秒ごとに更新します。デモの生成データは含みません。</p>
+        <p id="debug-status" class="notice" role="status">実際のアドバタイズはまだ受信していません。</p>
+        <dl class="packet-meta debug-stats">
+          <div><dt>受信イベント数</dt><dd id="debug-count">0</dd></div>
+          <div><dt>デバイス（保持最大100件）</dt><dd id="debug-devices">0</dd></div>
+          <div><dt>メーカーID 0x01CE を含む</dt><dd id="debug-pics-count">0</dd></div>
+          <div><dt>最終受信</dt><dd id="debug-last">—</dd></div>
+        </dl>
+        <h3>検出デバイス <span>最近受信した順・最大100件</span></h3>
+        <div class="table-scroll"><table><thead><tr><th scope="col">最終受信</th><th scope="col">名称 / デバイスID</th><th scope="col">RSSI</th><th scope="col">メーカーID</th><th scope="col">受信数</th></tr></thead><tbody id="debug-device-list"></tbody></table></div>
+        <details><summary>アドバタイズの詳細ログ（最新20件）</summary><pre id="debug-log">アドバタイズ未受信</pre></details>
+        <p class="caption">デバイスIDはブラウザが提供する識別子で、MACアドレスではありません。メーカー・サービスデータの生データを16進数で表示します。表示できるのはAPIから渡された項目だけです。ログはページ内のメモリーだけに保持し、デバッグをオフにすると消去します。</p>
+      </section>
+
+      <section class="panel monitor" aria-labelledby="monitor-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">SIGNAL MONITOR</p><h2 id="monitor-title">歩行者信号</h2></div>
+          <div class="intersection-control"><label for="intersection">交差点</label><select id="intersection" disabled><option value="">受信待ち</option></select></div>
+        </div>
+        <div class="intersection-meta"><strong id="intersection-name">交差点の情報を待っています</strong><span id="coordinates">位置情報 未受信</span></div>
+        <p id="freshness" class="freshness">Type 2（信号状態）の受信待ち</p>
+        <div id="signals" class="signals"></div>
+        <p class="caption">信号1・2は既存Python版の東西・南北表示に対応します。実際の方角は設置場所に依存します。残り値は受信値の解析結果で、秒数への換算やカウントダウンは行いません。</p>
+      </section>
+
+      <div class="details-grid">
+        <section class="panel packet" aria-labelledby="packet-title">
+          <div class="section-heading"><div><p class="eyebrow">ADVERTISEMENT</p><h2 id="packet-title">受信パケット</h2></div><span class="small-tag">0x01CE</span></div>
+          <dl class="packet-meta">
+            <div><dt>受信時刻</dt><dd id="received-at">—</dd></div>
+            <div><dt>メッセージ</dt><dd id="message-type">—</dd></div>
+            <div><dt>RSSI</dt><dd id="rssi">—</dd></div>
+            <div><dt>受信数（全交差点）</dt><dd id="packet-count">0</dd></div>
+          </dl>
+          <h3>RAW DATA <span>メーカーIDを除く</span></h3>
+          <pre id="raw">パケット未受信</pre>
+          <details><summary>最新パケットの解析結果（JSON）</summary><pre id="parsed">{}</pre></details>
+          <p id="invalid-count" class="caption">不正パケット: 0</p>
+        </section>
+
+        <section class="panel history" aria-labelledby="history-title">
+          <div class="section-heading"><div><p class="eyebrow">RECENT ACTIVITY</p><h2 id="history-title">信号履歴</h2></div><span class="small-tag">30秒 / 最大5件</span></div>
+          <p class="caption">選択中の交差点のType 2受信履歴</p>
+          <div class="table-scroll"><table><thead><tr><th scope="col">受信時刻</th><th scope="col">信号1</th><th scope="col">信号2</th><th scope="col">残り値 1 / 2</th></tr></thead><tbody id="history"><tr><td colspan="4" class="empty">信号の受信履歴はありません</td></tr></tbody></table></div>
+        </section>
+      </div>
+
+      <details class="panel help">
+        <summary>動作環境・使い方</summary>
+        <ol>
+          <li>HTTPSまたは <code>http://localhost</code> でこのページを開きます。</li>
+          <li>スキャンAPIに対応したChrome（主にmacOS / Android）で <code>chrome://flags/#enable-experimental-web-platform-features</code> を有効にして再起動します。ブラウザ・OSによっては設定後も動作しません。</li>
+          <li>端末のBluetoothを有効にし、「スキャン開始」からブラウザとOSの受信権限を許可してください。</li>
+          <li>対応信号機の近くで受信を待ちます。複数の交差点を受信した場合は一覧から選択できます。</li>
+        </ol>
+        <p>このアプリは <code>requestLEScan()</code> を使い、メーカーID <code>0x01CE</code> のデータを解析します。GATT接続は行いません。スキャン許可は周囲のアドバタイズ全体が対象です。通常は対象外メーカーのデータを破棄しますが、デバッグモードでは受信確認のため表示します。</p>
+        <p>PICS信号機が近くにない場合は「デバッグモード」をオンにして「スキャン開始」を押してください。受信イベント数が増えればBLEアドバタイズを受信できています。0件のままでもスキャン失敗とは限りません。周囲にアドバタイズを送信するBLE機器があるか、権限やBluetooth設定を確認してください。ペアリング済み機器でも常時アドバタイズするとは限りません。</p>
+        <p>ページを非表示にすると受信を停止します。再開するときは「スキャン開始」を押してください。5秒以上信号データが届かない場合は「更新なし」と表示します。</p>
+        <p>データはこのページ内だけで処理し、サーバーには送信しません。再読み込みや実機・デモの切り替えで受信データは消去されます。</p>
+        <p><a href="https://googlechrome.github.io/samples/web-bluetooth/scan.html" target="_blank" rel="noreferrer">Chrome公式のスキャンサンプル</a> · <a href="https://github.com/whatwg/bluetooth/blob/main/implementation-status.md" target="_blank" rel="noreferrer">Web Bluetooth実装状況</a></p>
+      </details>
+      <p class="safety-note">観測・開発用のモニターです。横断時は現地の信号と周囲の状況を確認してください。</p>
+    </main>
+    <footer><span>PICS Viewer</span><span>Web Bluetooth Edition · 受信データの可視化</span></footer>
+  </div>
+</body>
+</html>

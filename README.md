@@ -25,6 +25,18 @@ python ble-pics-viewer.py
 ## デモ
 https://github.com/user-attachments/assets/71077409-656c-471e-b071-970c37c89461
 
+## Web Bluetooth版
+
+`web`ディレクトリに、ブラウザで動く版を用意しています。追加のライブラリやビルドは不要です。
+
+```bash
+python3 -m http.server 8000 --bind 127.0.0.1 --directory web
+```
+
+<http://localhost:8000> を開いてください。実機受信には実験的なWeb Bluetooth Scanning API（`requestLEScan`）に対応したChromeと、実験的機能の有効化が必要です。通常のWeb Bluetooth対応だけでは受信できません。Bluetoothを使わず画面を確認できるデモもあります。
+
+対応環境・設定・解析仕様・テスト方法は [web/README.md](web/README.md) を参照してください。
+
 ## 法令遵守に関する注記（Legal Notice）
 
 本プログラムが受信対象とする PICS の BLE アドバタイズ信号は、道路交通信号機などの公共インフラ設備から **不特定多数に向けて送信される公開電波** です。この電波には、個人を識別できる情報や秘匿性のある通信内容は含まれておらず、以下の各法令で保護対象とされる「通信の秘密」や「個人情報」には 該当しません。
