@@ -2,7 +2,7 @@ import {
   MANUFACTURER_ID, STALE_AFTER_MS, SIGNAL_LABELS, processPics, hexDump,
   updateIntersection, recentHistory, demoPackets,
 } from './pics.mjs';
-import { AdvertisementScanner, DeviceAdvertisementWatcher, scanErrorMessage } from './bluetooth.mjs?v=20261031-2';
+import { AdvertisementScanner, DeviceAdvertisementWatcher, scanErrorMessage } from './bluetooth.mjs?v=20261101-1';
 import { AdvertisementDiagnostics } from './debug.mjs';
 
 const $ = id => document.getElementById(id);
@@ -22,6 +22,7 @@ if (requestedMethod === 'watch' || requestedMethod === 'scan') {
   $('reception-method').value = 'watch';
 }
 const watchingDevice = () => $('reception-method').value === 'watch';
+const picsOnly = () => $('watch-target').value === 'pics';
 const supported = () => watchingDevice() ? watchSupported : scanSupported;
 let mode = 'idle';
 let selectedId = '';
@@ -47,6 +48,10 @@ const signalCards = Array.from({ length: 6 }, (_, index) => {
 function updateCompatibility() {
   const api = watchingDevice() ? 'requestDevice / watchAdvertisements' : 'requestLEScan';
   $('watch-notice').hidden = !watchingDevice();
+  $('watch-target-control').hidden = !watchingDevice();
+  $('watch-notice').textContent = picsOnly()
+    ? '選択一覧をメーカーID 0x01CEのPICS候補に絞ります。名称が不明でも候補として選択できます。選択後に交差点ID・信号情報が表示されることを確認してください。同じメーカーIDの別機器も候補になる場合があります。監視するのは選んだ1台だけで、GATT接続は行いません。'
+    : '選択した1台だけを監視します。GATT接続は行いません。デバッグでは名前やRSSIで受信確認でき、メーカー生データは許可を要求したPICSの0x01CEのみ表示できます。デバイス一覧の表示だけでは、広告の受信確認にはなりません。';
   if (!window.isSecureContext) {
     $('compatibility').textContent = '実機受信にはHTTPSまたはhttp://localhostが必要です。現在の環境ではデモを利用できます。';
   } else if (!supported()) {
@@ -64,11 +69,12 @@ function setMode(next) {
   $('start').textContent = watchingDevice() ? 'デバイスを選んで監視' : 'スキャン開始';
   $('start').disabled = !supported() || mode === 'scanning' || mode === 'requesting';
   $('reception-method').disabled = mode !== 'idle';
+  $('watch-target').disabled = mode !== 'idle';
   $('demo').disabled = mode === 'demo' || mode === 'requesting';
   $('stop').disabled = mode === 'idle';
   $('status').textContent = {
     idle: '停止中です。表示は最後に受信したデータです。',
-    requesting: watchingDevice() ? 'デバイスの選択・広告監視の開始を待っています…' : 'ブラウザのスキャン許可を待っています…',
+    requesting: watchingDevice() ? `${picsOnly() ? 'PICS候補（メーカーID 0x01CE）' : 'すべてのデバイス'}からの選択・広告監視の開始を待っています…` : 'ブラウザのスキャン許可を待っています…',
     scanning: watchingDevice() ? `選択したデバイス「${receiver().device?.name || '名称なし'}」の広告を監視中です。GATT接続は行いません。` : 'BLEスキャン実行中です。受信したメーカーID 0x01CE のデータを解析します。',
     demo: '架空の交差点データを1秒ごとに更新しています。',
   }[mode];
@@ -294,7 +300,7 @@ $('start').addEventListener('click', async () => {
   resetData();
   try {
     // Called directly in this click handler to preserve transient user activation.
-    await receiver().start();
+    await receiver().start({ picsOnly: picsOnly() });
   } catch (error) {
     $('error').textContent = scanErrorMessage(error);
     $('error').hidden = false;
@@ -313,11 +319,13 @@ $('demo').addEventListener('click', () => {
   demoTimer = setInterval(tick, 1000);
 });
 $('stop').addEventListener('click', () => stopReception());
-$('reception-method').addEventListener('change', () => {
+function receptionSettingsChanged() {
   resetData(demoData);
   updateCompatibility();
   setMode(mode);
-});
+}
+$('reception-method').addEventListener('change', receptionSettingsChanged);
+$('watch-target').addEventListener('change', receptionSettingsChanged);
 $('debug-enabled').addEventListener('change', () => {
   diagnostics.clear();
   // Remove rendered data as well when disabling diagnostics.

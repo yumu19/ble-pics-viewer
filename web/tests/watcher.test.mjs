@@ -42,10 +42,14 @@ function harness() {
   return { h, bluetooth, choice, states, watcher, get options() { return options; }, get received() { return received; } };
 }
 
-test('selects a device with PICS data permission and receives ads without accessing GATT', async () => {
+test('filters unnamed PICS candidates by manufacturer ID and receives ads without accessing GATT', async () => {
   const t = harness();
   const started = t.watcher.start();
-  assert.deepEqual(t.options, { acceptAllDevices: true, optionalManufacturerData: [0x01ce] });
+  assert.deepEqual(t.options, {
+    filters: [{ manufacturerData: [{ companyIdentifier: 0x01ce }] }],
+    optionalManufacturerData: [0x01ce],
+  });
+  t.h.device.name = '';
   t.choice.resolve(t.h.device);
   t.h.pendingWatch.resolve();
   assert.equal(await started, true);
@@ -60,6 +64,18 @@ test('selects a device with PICS data permission and receives ads without access
   t.h.device.dispatchEvent(new Event('advertisementreceived'));
   assert.equal(t.received, 2);
   assert.equal(t.watcher.mode, 'idle');
+});
+
+test('all-device diagnostics use an unfiltered chooser while preserving PICS data permission', async () => {
+  const t = harness();
+  const started = t.watcher.start({ picsOnly: false });
+  assert.deepEqual(t.options, { acceptAllDevices: true, optionalManufacturerData: [0x01ce] });
+  t.choice.resolve(t.h.device);
+  t.h.pendingWatch.resolve();
+  assert.equal(await started, true);
+  t.h.device.dispatchEvent(new Event('advertisementreceived'));
+  assert.equal(t.received, 1);
+  t.watcher.stop();
 });
 
 test('stopping while the chooser is open does not start a watcher on a late selection', async () => {

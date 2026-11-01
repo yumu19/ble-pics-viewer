@@ -31,16 +31,20 @@ python3 -m http.server 8000 --bind 127.0.0.1 --directory web
 
 ### デバイス選択方式を使う
 
-URLに `?mode=watch` を付けると、最初からデバイス選択方式で開けます。画面下部のバージョン表示は `2026.10.31.2` です。この方式では上部に `requestDevice / watchAdvertisementsを検出しました`、開始ボタンに「デバイスを選んで監視」と表示されます。「スキャンAPIを検出しました」という旧案内が出る場合は、古いページ・スクリプトを読み込んでいます。公開先への反映を確認したうえで再読み込みしてください。HTMLと変更したスクリプト・CSSにバージョン付きURLを使用し、異なる版がキャッシュで混在するのを防いでいます。
+URLに `?mode=watch` を付けると、最初からデバイス選択方式で開けます。画面下部のバージョン表示は `2026.11.01.1` です。この方式では上部に `requestDevice / watchAdvertisementsを検出しました`、開始ボタンに「デバイスを選んで監視」と表示されます。「スキャンAPIを検出しました」という旧案内が出る場合は、古いページ・スクリプトを読み込んでいます。公開先への反映を確認したうえで再読み込みしてください。HTMLと変更したスクリプト・CSSにバージョン付きURLを使用し、異なる版がキャッシュで混在するのを防いでいます。
 
 1. 停止中に「受信方式」を「デバイスを選んで広告を監視」に変更します。
-2. 受信確認の場合は「デバッグモード」をオンにします。
+2. 現地でPICS機器を探す場合は、対象を初期値の「PICS候補（0x01CE）」にします。一般のBLE機器による受信確認の場合は「すべてのデバイス（受信確認用）」に変更し、「デバッグモード」をオンにします。
 3. 「デバイスを選んで監視」を押し、Chromeの選択画面で機器を1台選んで確定します。
 4. デバッグの受信イベント数が増えることを確認します。選択画面に機器が出ただけでは、広告受信の確認にはなりません。
 
-[Chrome公式の広告監視サンプル](https://googlechrome.github.io/samples/web-bluetooth/watch-advertisements.html)と同じAPIを使用します。`requestDevice({ acceptAllDevices: true, optionalManufacturerData: [0x01CE] })` でPICSのメーカー情報へのアクセスも要求し、選択したデバイスの `advertisementreceived` を受け取ります。`watchAdvertisements({ signal })` のAbortSignalで停止します。GATTの接続・読み書きは行いません。
+[Chrome公式の広告監視サンプル](https://googlechrome.github.io/samples/web-bluetooth/watch-advertisements.html)と同じAPIを使用します。「PICS候補」では `requestDevice({ filters: [{ manufacturerData: [{ companyIdentifier: 0x01CE }] }], optionalManufacturerData: [0x01CE] })` で、名前ではなく広告のメーカーIDから候補を絞ります。名称が「不明またはサポートされていないデバイス」でも、名前を推測して全機器から探す必要はありません。同じメーカーIDの別機器も候補になる場合があるので、選択後に交差点IDと信号情報を受信できることを確認してください。候補が出ない場合は、Macのブラウザでその広告が見えているかはまだ確認できていません。「すべてのデバイス」では `filters` を指定せず `acceptAllDevices: true` に切り替えます。[メーカーIDによるフィルターのChrome公式説明](https://developer.chrome.com/docs/capabilities/bluetooth#manufacturer-data-filter)
 
-監視できるのは選択した1台だけで、全体スキャンと同等ではありません。PICS機器が選択一覧に表示されない場合は使えません。また、選択後に広告を送信しない機器では受信件数は増えません。デバッグではPICS以外の機器も名前・RSSI・イベント件数で確認できますが、メーカー生データの許可は `0x01CE` だけを要求しているため、他メーカーの生データは公開されません。サービスデータも許可状態に応じて省略されます。新たな方式が対象のMacで動作するかは実機確認が必要です。
+どちらもPICSのメーカー情報へのアクセスを要求し、選択したデバイスの `advertisementreceived` を受け取ります。`watchAdvertisements({ signal })` のAbortSignalで停止します。GATTの接続・読み書きは行いません。
+
+監視できるのは選択した1台だけで、全体スキャンと同等ではありません。PICS機器が選択一覧に表示されない場合は使えません。また、選択後に広告を送信しない機器では受信件数は増えません。対象を「すべてのデバイス」にすると、デバッグでPICS以外の機器も名前・RSSI・イベント件数で確認できますが、メーカー生データの許可は `0x01CE` だけを要求しているため、他メーカーの生データは公開されません。サービスデータも許可状態に応じて省略されます。
+
+ユーザーによる実機確認では、Androidで全体スキャンによるPICS情報取得、Macで選択した一般BLE機器の広告受信が確認できています。Macでの全体スキャンはPICS設置場所でも動作していません。MacでのPICS機器の特定・データ受信は引き続き現地確認が必要です。これらは試した環境での結果であり、すべてのAndroid・Macでの動作保証ではありません。
 
 ## PICS信号機がない場所でスキャンを確認する
 

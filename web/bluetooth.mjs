@@ -63,16 +63,23 @@ export class AdvertisementScanner {
 // Alternative to requestLEScan: uses the normal device chooser and monitors one
 // device's advertisements. No GATT connection or characteristic access is used.
 export class DeviceAdvertisementWatcher extends AdvertisementScanner {
-  async start() {
+  async start({ picsOnly = true } = {}) {
     if (this.mode !== 'idle') return false;
     const generation = ++this.generation;
     this.setMode('requesting');
     try {
-      const device = await this.bluetooth.requestDevice({
-        acceptAllDevices: true,
+      const options = {
         // Without this permission the browser hides the PICS manufacturer data.
         optionalManufacturerData: [MANUFACTURER_ID],
-      });
+      };
+      if (picsOnly) {
+        // Match the advertised company identifier even when no device name is
+        // available. This finds candidates; the payload still needs decoding.
+        options.filters = [{ manufacturerData: [{ companyIdentifier: MANUFACTURER_ID }] }];
+      } else {
+        options.acceptAllDevices = true;
+      }
+      const device = await this.bluetooth.requestDevice(options);
       if (generation !== this.generation) return false;
       if (typeof device.watchAdvertisements !== 'function') {
         throw new DOMException('watchAdvertisements() is not available. Enable experimental Web Platform features.', 'NotSupportedError');

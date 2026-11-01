@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#f3f6f4">
   <meta name="description" content="高度化PICSのBLEアドバタイズをブラウザで受信・可視化するWeb Bluetoothモニター。">
   <title>PICS Viewer · Web Bluetooth</title>
-  <link rel="stylesheet" href="styles.css?v=20261031-2">
-  <script type="module" src="app.mjs?v=20261031-2"></script>
+  <link rel="stylesheet" href="styles.css?v=20261101-1">
+  <script type="module" src="app.mjs?v=20261101-1"></script>
 </head>
 <body>
   <div class="shell">
@@ -25,6 +25,7 @@
 
       <section class="panel controls" aria-label="受信操作">
         <label class="reception-method" for="reception-method">受信方式<select id="reception-method"><option value="scan">周囲をまとめてスキャン</option><option value="watch">デバイスを選んで広告を監視</option></select></label>
+        <label id="watch-target-control" class="reception-method" for="watch-target" hidden>対象<select id="watch-target"><option value="pics">PICS候補（0x01CE）</option><option value="all">すべてのデバイス（受信確認用）</option></select></label>
         <div class="actions">
           <button id="start" class="primary" type="button">スキャン開始</button>
           <button id="demo" type="button">デモを試す</button>
@@ -98,7 +99,7 @@
           <li>対応信号機の近くで受信を待ちます。複数の交差点を受信した場合は一覧から選択できます。</li>
         </ol>
         <p>「周囲をまとめてスキャン」は <code>requestLEScan()</code> を使い、メーカーID <code>0x01CE</code> のデータを解析します。GATT接続は行いません。スキャン許可は周囲のアドバタイズ全体が対象です。通常は対象外メーカーのデータを破棄しますが、デバッグモードでは受信確認のため表示します。</p>
-        <p>通常のデバイス選択一覧には機器が出るのに全体スキャンで見つからない場合は、「デバイスを選んで広告を監視」を試してください。<code>requestDevice()</code> で1台を選び、<code>watchAdvertisements()</code> で広告を受信します。こちらも実験的機能が必要です。PICS機器が選択一覧に出ない場合には使えません。選択後も広告を送信し続ける機器で確認してください。</p>
+        <p>通常のデバイス選択一覧には機器が出るのに全体スキャンで見つからない場合は、「デバイスを選んで広告を監視」を試してください。<code>requestDevice()</code> で1台を選び、<code>watchAdvertisements()</code> で広告を受信します。対象の初期値は「PICS候補（0x01CE）」で、名前ではなく広告のメーカーIDで絞り込みます。一般のBLE機器による受信確認は「すべてのデバイス（受信確認用）」を選んでください。こちらも実験的機能が必要です。PICS機器が選択一覧に出ない場合には使えません。選択後も広告を送信し続ける機器で確認してください。</p>
         <p>PICS信号機が近くにない場合は「デバッグモード」をオンにして「スキャン開始」を押してください。受信イベント数が増えればBLEアドバタイズを受信できています。0件のままでもスキャン失敗とは限りません。周囲にアドバタイズを送信するBLE機器があるか、権限やBluetooth設定を確認してください。ペアリング済み機器でも常時アドバタイズするとは限りません。</p>
         <p>ページを非表示にすると受信を停止します。再開するときは「スキャン開始」を押してください。5秒以上信号データが届かない場合は「更新なし」と表示します。</p>
         <p>データはこのページ内だけで処理し、サーバーには送信しません。再読み込みや実機・デモの切り替えで受信データは消去されます。</p>
@@ -106,7 +107,7 @@
       </details>
       <p class="safety-note">観測・開発用のモニターです。横断時は現地の信号と周囲の状況を確認してください。</p>
     </main>
-    <footer><span>PICS Viewer</span><span>Web Bluetooth Edition · 2026.10.31.2</span></footer>
+    <footer><span>PICS Viewer</span><span>Web Bluetooth Edition · 2026.11.01.1</span></footer>
   </div>
 </body>
 </html>
