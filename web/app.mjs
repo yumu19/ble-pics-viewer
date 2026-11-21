@@ -4,6 +4,7 @@ import {
 } from './pics.mjs';
 import { AdvertisementScanner, DeviceAdvertisementWatcher, scanErrorMessage } from './bluetooth.mjs?v=20261101-1';
 import { AdvertisementDiagnostics } from './debug.mjs';
+import { createMapView } from './map.mjs?v=20261121-1';
 
 const $ = id => document.getElementById(id);
 const intersections = new Map();
@@ -31,6 +32,7 @@ let invalidCount = 0;
 let demoTimer = null;
 let demoStep = 0;
 let demoData = false;
+let mapView = null;
 
 const signalCards = Array.from({ length: 6 }, (_, index) => {
   const card = document.createElement('article');
@@ -189,6 +191,7 @@ function render() {
   if (!invalidCount) $('invalid-count').textContent = '不正パケット: 0';
   renderHistory(entry, now);
   renderDebug(now);
+  mapView?.updateReceived(intersections, selectedId);
 }
 
 function renderDebug(now = Date.now()) {
@@ -340,7 +343,48 @@ $('debug-clear').addEventListener('click', () => {
 $('intersection').addEventListener('change', event => {
   selectedId = event.target.value;
   render();
+  const entry = intersections.get(selectedId);
+  if (Number.isFinite(entry?.latitude) && Number.isFinite(entry?.longitude)) {
+    mapView?.focusLocation(entry.latitude, entry.longitude);
+  }
 });
+
+async function loadMap() {
+  let locations;
+  try {
+    const response = await fetch('./pics-locations.json');
+    if (!response.ok) throw new Error('交差点データを取得できませんでした。');
+    locations = await response.json();
+  } catch {
+    locations = [];
+  }
+  mapView = createMapView({
+    mapElement: $('map'),
+    listElement: $('nearby-list'),
+    onSelectLocation: location => mapView.focusLocation(location.lat, location.lng),
+  });
+  mapView.setLocations(locations);
+  mapView.updateReceived(intersections, selectedId);
+}
+
+const mapReady = loadMap();
+$('locate').addEventListener('click', () => {
+  const showMessage = message => {
+    const item = document.createElement('li');
+    item.textContent = message;
+    $('nearby-list').replaceChildren(item);
+  };
+  if (!navigator.geolocation) {
+    showMessage('この環境では位置情報を利用できません。');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+    await mapReady;
+    mapView.setUserPosition(coords.latitude, coords.longitude);
+    mapView.focusLocation(coords.latitude, coords.longitude);
+  }, () => showMessage('現在地を取得できませんでした。'));
+});
+
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && mode !== 'idle') stopReception('ページが非表示になったため停止しました。再開するにはスキャン開始、またはデモを押してください。');
 });

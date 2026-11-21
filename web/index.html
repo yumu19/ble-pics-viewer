@@ -6,8 +6,10 @@
   <meta name="theme-color" content="#f3f6f4">
   <meta name="description" content="高度化PICSのBLEアドバタイズをブラウザで受信・可視化するWeb Bluetoothモニター。">
   <title>PICS Viewer · Web Bluetooth</title>
-  <link rel="stylesheet" href="styles.css?v=20261101-2">
-  <script type="module" src="app.mjs?v=20261101-1"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="styles.css?v=20261121-1">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="app.mjs?v=20261121-1"></script>
 </head>
 <body>
   <div class="shell">
@@ -73,6 +75,15 @@
         <p id="freshness" class="freshness">Type 2（信号状態）の受信待ち</p>
         <div id="signals" class="signals"></div>
         <p class="caption">信号1・2は既存Python版の東西・南北表示に対応します。実際の方角は設置場所に依存します。残り値は受信値の解析結果で、秒数への換算やカウントダウンは行いません。</p>
+      </section>
+
+      <section class="panel map-panel" aria-labelledby="map-title">
+        <div class="section-heading"><div><p class="eyebrow">PICS MAP</p><h2 id="map-title">周辺の高度化PICS交差点</h2></div></div>
+        <div id="map"></div>
+        <div class="map-actions"><button id="locate" type="button">現在地を表示</button></div>
+        <ol id="nearby-list" aria-live="polite"></ol>
+        <p class="caption">受信した交差点は地図上で強調表示されます。</p>
+        <p class="caption">出典：警察庁「高度化PICS整備交差点」（CC-BY）をもとに作成 · © OpenStreetMap contributors</p>
       </section>
 
       <div class="details-grid">
