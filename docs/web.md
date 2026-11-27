@@ -7,10 +7,10 @@
 リポジトリのルートで次を実行します。
 
 ```bash
-python3 -m http.server 8000 --bind 127.0.0.1 --directory web
+python3 -m http.server 8000 --bind 127.0.0.1
 ```
 
-ブラウザで <http://localhost:8000> を開きます。静的ホスティングで利用する場合はHTTPSで配信してください。`file://` からの直接起動ではES Modulesを読み込めないため、HTTPサーバーを利用してください。
+ブラウザで <http://localhost:8000> を開きます。公開版は <https://yumu19.github.io/ble-pics-viewer/> です。旧URLの `web/` と `web/index.html` はトップへリダイレクトします。JavaScriptが有効な場合、クエリ文字列とフラグメントも引き継ぎます。静的ホスティングで利用する場合はHTTPSで配信してください。`file://` からの直接起動ではES Modulesを読み込めないため、HTTPサーバーを利用してください。
 
 ## 実機で受信する
 
@@ -104,11 +104,15 @@ PythonのBleakで多数のBLE機器を検出でき、[Device Infoサンプル](h
 - `pics.mjs`: パケット解析、交差点情報の保持、履歴、デモデータ生成
 - `bluetooth.mjs`: 全体スキャン・選択デバイスの広告監視、開始・停止、非同期の許可要求のキャンセル処理
 - `debug.mjs`: 全メーカーの受信イベント・デバイス情報のデバッグ記録（件数制限付き）
+- `web/index.html`: 旧URLからトップへのリダイレクト
+- `python/`: Python版
+
+Web版のファイルと `tests/` はリポジトリ直下にあります。この説明は `docs/web.md` にあります。
 
 Node.js 18以降で、パーサー・情報保持・スキャン制御のテストを実行できます。
 
 ```bash
-node --test web/tests/*.test.mjs
+node --test tests/*.test.mjs
 ```
 
 自動テストは合成パケットとBluetooth APIのモックを使用します。実機のアドバタイズ受信・OSの権限ダイアログ・ブラウザの画面表示は別途動作確認が必要です。

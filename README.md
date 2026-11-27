@@ -9,35 +9,35 @@
     - [信号の時刻表をつくる 2025 (1/2) :: デイリーポータルZ](https://dailyportalz.jp/kiji/shingo-jikokuhyo2025)
 - 高度化PICS信号機の設置場所は、e-Govデータポータルの [高度化PICS整備交差点_csv](https://data.e-gov.go.jp/data/dataset/npa_20221124_0054/resource/6f7e83e1-be28-4030-961f-3b489c9f6ad8) にて公開されています
 
-## 事前準備
-- Pythonの動作環境を構築してください
-  -  Python 3.14.0 にて動作確認
-- 以下のパッケージをpipでインストール
-```bash
-pip install pyyaml bleak
-```
-
-## 起動
-```bash
-python ble-pics-viewer.py
-```
-
 ## デモ
 https://github.com/user-attachments/assets/71077409-656c-471e-b071-970c37c89461
 
 ## Web Bluetooth版
 
-公開URL: [Web Bluetooth版を開く](https://yumu19.github.io/ble-pics-viewer/web/)
+公開URL: [Web Bluetooth版を開く](https://yumu19.github.io/ble-pics-viewer/)
 
-`web`ディレクトリに、ブラウザで動く版を用意しています。追加のライブラリやビルドは不要です。
+リポジトリ直下に、ブラウザで動く版を用意しています。追加のライブラリやビルドは不要です。
 
 ```bash
-python3 -m http.server 8000 --bind 127.0.0.1 --directory web
+python3 -m http.server 8000 --bind 127.0.0.1
 ```
 
 <http://localhost:8000> を開いてください。実機受信には、実験的なWeb Bluetoothの広告受信APIに対応したChromeと、実験的機能の有効化が必要です。周囲をまとめて受信する `requestLEScan` と、選択した1台を監視する `watchAdvertisements` を切り替えられます。通常のWeb Bluetooth対応だけでは広告を受信できません。Bluetoothを使わず画面を確認できるデモもあります。
 
-対応環境・設定・解析仕様・テスト方法は [web/README.md](web/README.md) を参照してください。
+対応環境・設定・解析仕様・テスト方法は [Web版の説明](docs/web.md) を参照してください。
+
+GitHub Pagesでは、公開元のブランチのルート（`/ (root)`）を公開対象にしてください。以前のURL（`/ble-pics-viewer/web/` および `/ble-pics-viewer/web/index.html`）はトップへリダイレクトします。JavaScriptが有効な場合、クエリ文字列とフラグメントも引き継ぎます。
+
+## Python版
+
+Python版は `python` ディレクトリにあります。Python 3.14.0 にて動作確認しています。リポジトリのルートで次を実行してください。
+
+```bash
+pip install pyyaml bleak
+python python/ble-pics-viewer.py
+```
+
+詳しくは [Python版の説明](python/README.md) を参照してください。
 
 ## 法令遵守に関する注記（Legal Notice）
 

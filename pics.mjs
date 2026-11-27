@@ -21,7 +21,7 @@ export function hexDump(data) {
   return Array.from(toBytes(data), byte => byte.toString(16).padStart(2, '0').toUpperCase()).join(' ');
 }
 
-// Byte offsets and signal encodings follow process_pics() in ble-pics-viewer.py.
+// Byte offsets and signal encodings follow process_pics() in python/ble-pics-viewer.py.
 export function processPics(data) {
   const bytes = toBytes(data);
   if (bytes.length < 10) throw new RangeError('PICSヘッダーが短すぎます（10バイト以上必要）。');
