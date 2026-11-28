@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">PICS Viewer · Web Bluetooth</title>
+  <desc id="description">高度化PICSの信号情報をブラウザで可視化。赤と青の信号を描いた共有画像。</desc>
+  <rect width="1200" height="630" fill="#f3f6f4"/>
+  <rect width="1200" height="12" fill="#176347"/>
+  <g font-family="Hiragino Sans, sans-serif">
+    <rect x="68" y="66" width="52" height="52" rx="15" fill="#203e30"/>
+    <polyline points="83,103 104,82 87,82 104,82 104,99" fill="none" stroke="#b8edc8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="138" y="100" font-size="20" font-weight="600" fill="#52695b" letter-spacing="2">WEB BLUETOOTH</text>
+    <text x="65" y="258" font-size="82" font-weight="700" letter-spacing="-3" fill="#20332c">PICS Viewer</text>
+    <text x="70" y="326" font-size="31" font-weight="600" fill="#203e30">高度化PICSの信号情報を、</text>
+    <text x="70" y="374" font-size="31" font-weight="600" fill="#203e30">ブラウザで可視化。</text>
+    <rect x="70" y="418" width="218" height="40" rx="20" fill="#e3eee7"/>
+    <text x="179" y="445" text-anchor="middle" font-size="17" font-weight="600" fill="#176347">BLE受信・信号モニター</text>
+    <rect x="304" y="418" width="176" height="40" rx="20" fill="#e3eee7"/>
+    <text x="392" y="445" text-anchor="middle" font-size="17" font-weight="600" fill="#176347">交差点マップ</text>
+    <rect x="788" y="156" width="340" height="310" rx="24" fill="#fff" stroke="#dce5df" stroke-width="2"/>
+    <text x="816" y="198" font-size="14" letter-spacing="2" font-weight="600" fill="#65796e">SIGNAL MONITOR</text>
+    <line x1="816" y1="220" x2="1100" y2="220" stroke="#dce5df" stroke-width="2"/>
+    <rect x="816" y="244" width="128" height="190" rx="16" fill="#fff0ed"/>
+    <text x="880" y="277" text-anchor="middle" font-size="16" fill="#6f7772">信号1</text>
+    <circle cx="880" cy="332" r="30" fill="#d95045"/>
+    <text x="880" y="402" text-anchor="middle" font-size="24" font-weight="600" fill="#a23727">赤</text>
+    <rect x="972" y="244" width="128" height="190" rx="16" fill="#e5f5eb"/>
+    <text x="1036" y="277" text-anchor="middle" font-size="16" fill="#6f7772">信号2</text>
+    <circle cx="1036" cy="332" r="30" fill="#188151"/>
+    <text x="1036" y="402" text-anchor="middle" font-size="24" font-weight="600" fill="#176347">青</text>
+    <line x1="70" y1="518" x2="1130" y2="518" stroke="#dce4df" stroke-width="2"/>
+    <text x="70" y="566" font-size="19" fill="#65796e">yumu19.github.io/ble-pics-viewer/</text>
+    <text x="1128" y="566" text-anchor="end" font-size="17" font-weight="600" fill="#176347">Web Bluetooth Edition</text>
+  </g>
+</svg>
