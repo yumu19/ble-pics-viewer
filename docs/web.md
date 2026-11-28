@@ -6,7 +6,7 @@
 
 https://github.com/user-attachments/assets/587b493d-1f3e-4394-b22b-8d2ec08337da
 
-## 起動
+## ローカルでの起動
 
 リポジトリのルートで次を実行します。
 

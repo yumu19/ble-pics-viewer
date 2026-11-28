@@ -19,15 +19,7 @@
 
 https://github.com/user-attachments/assets/587b493d-1f3e-4394-b22b-8d2ec08337da
 
-### ローカルでの起動
-
-```bash
-python3 -m http.server 8000 --bind 127.0.0.1
-```
-
-<http://localhost:8000> を開いてください。実機受信には、実験的なWeb Bluetoothの広告受信APIに対応したChromeと、実験的機能の有効化が必要です。周囲をまとめて受信する `requestLEScan` と、選択した1台を監視する `watchAdvertisements` を切り替えられます。通常のWeb Bluetooth対応だけでは広告を受信できません。Bluetoothを使わず画面を確認できるデモもあります。
-
-対応環境・設定・解析仕様・テスト方法は [Web版の説明](docs/web.md) を参照してください。
+起動方法・対応環境・設定・解析仕様・テスト方法は [Web版の説明](docs/web.md) を参照してください。
 
 GitHub Pagesでは、公開元のブランチのルート（`/ (root)`）を公開対象にしてください。以前のURL（`/ble-pics-viewer/web/` および `/ble-pics-viewer/web/index.html`）はトップへリダイレクトします。JavaScriptが有効な場合、クエリ文字列とフラグメントも引き継ぎます。
 
