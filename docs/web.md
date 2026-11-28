@@ -4,7 +4,7 @@
 
 ## デモ動画
 
-[Web版のデモ動画を見る（MP4）](../assets/web-demo.mp4)
+https://github.com/user-attachments/assets/587b493d-1f3e-4394-b22b-8d2ec08337da
 
 ## 起動
 
