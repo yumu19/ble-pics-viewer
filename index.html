@@ -6,8 +6,10 @@
   <meta name="theme-color" content="#f3f6f4">
   <meta name="description" content="高度化PICSのBLEアドバタイズをブラウザで受信・可視化するWeb Bluetoothモニター。">
   <title>PICS Viewer · Web Bluetooth</title>
-  <link rel="stylesheet" href="styles.css?v=20261101-2">
-  <script type="module" src="app.mjs?v=20261101-1"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="styles.css?v=20261128-1">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="app.mjs?v=20261128-1"></script>
 </head>
 <body>
   <div class="shell">
@@ -75,6 +77,15 @@
         <p class="caption">信号1・2は既存Python版の東西・南北表示に対応します。実際の方角は設置場所に依存します。残り値は受信値の解析結果で、秒数への換算やカウントダウンは行いません。</p>
       </section>
 
+      <section class="panel map-panel" aria-labelledby="map-title">
+        <div class="section-heading"><div><p class="eyebrow">PICS MAP</p><h2 id="map-title">周辺の高度化PICS交差点</h2></div></div>
+        <div id="map"></div>
+        <div class="map-actions"><button id="locate" type="button">現在地を表示</button></div>
+        <ol id="nearby-list" aria-live="polite"></ol>
+        <p class="caption">受信した交差点は地図上で強調表示されます。</p>
+        <p class="caption">出典：警察庁「<a href="https://data.e-gov.go.jp/data/dataset/npa_20221124_0054/resource/6f7e83e1-be28-4030-961f-3b489c9f6ad8" target="_blank" rel="noreferrer">高度化PICS整備交差点</a>」（CC-BY）をもとに作成 · © OpenStreetMap contributors</p>
+      </section>
+
       <div class="details-grid">
         <section class="panel packet" aria-labelledby="packet-title">
           <div class="section-heading"><div><p class="eyebrow">ADVERTISEMENT</p><h2 id="packet-title">受信パケット</h2></div><span class="small-tag">0x01CE</span></div>
@@ -109,12 +120,12 @@
         <p>通常のデバイス選択一覧には機器が出るのに全体スキャンで見つからない場合は、「デバイスを選んで広告を監視」を試してください。<code>requestDevice()</code> で1台を選び、<code>watchAdvertisements()</code> で広告を受信します。対象の初期値は「PICS候補（0x01CE）」で、名前ではなく広告のメーカーIDで絞り込みます。一般のBLE機器による受信確認は「すべてのデバイス（受信確認用）」を選んでください。こちらも実験的機能が必要です。PICS機器が選択一覧に出ない場合には使えません。選択後も広告を送信し続ける機器で確認してください。</p>
         <p>PICS信号機が近くにない場合は「デバッグモード」をオンにして「スキャン開始」を押してください。受信イベント数が増えればBLEアドバタイズを受信できています。0件のままでもスキャン失敗とは限りません。周囲にアドバタイズを送信するBLE機器があるか、権限やBluetooth設定を確認してください。ペアリング済み機器でも常時アドバタイズするとは限りません。</p>
         <p>ページを非表示にすると受信を停止します。再開するときは「スキャン開始」を押してください。5秒以上信号データが届かない場合は「更新なし」と表示します。</p>
-        <p>データはこのページ内だけで処理し、サーバーには送信しません。再読み込みや実機・デモの切り替えで受信データは消去されます。</p>
+        <p>BLEの受信データはこのページ内で解析し、サーバーへ送信しません。地図の表示には外部の地図配信サービスと通信します。再読み込みや実機・デモの切り替えで受信データは消去されます。</p>
         <p><a href="https://googlechrome.github.io/samples/web-bluetooth/scan.html" target="_blank" rel="noreferrer">Chrome公式のスキャンサンプル</a> · <a href="https://googlechrome.github.io/samples/web-bluetooth/watch-advertisements.html" target="_blank" rel="noreferrer">1台の広告監視サンプル</a> · <a href="https://github.com/whatwg/bluetooth/blob/main/implementation-status.md" target="_blank" rel="noreferrer">Web Bluetooth実装状況</a></p>
       </details>
       <p class="safety-note">観測・開発用のモニターです。横断時は現地の信号と周囲の状況を確認してください。</p>
     </main>
-    <footer><span>PICS Viewer</span><span>Web Bluetooth Edition · 2026.11.01.5</span></footer>
+    <footer><span>PICS Viewer</span><span>Web Bluetooth Edition · 2026.11.28.1</span></footer>
   </div>
 </body>
 </html>

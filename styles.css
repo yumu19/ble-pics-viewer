@@ -50,6 +50,13 @@ h1 span { color: #697c71; font-size: 12px; font-weight: 500; margin-left: 9px; l
 .notice.error { background: #fff0ed; color: #a23727; white-space: pre-wrap; }
 .demo-notice { background: #fff4d9; color: #835c16; }
 .monitor { margin-top: 22px; }
+.map-panel { margin-top: 22px; }
+#map { height: 320px; isolation: isolate; margin-top: 16px; border-radius: 9px; background: #edf2ee; }
+.map-actions { margin-top: 12px; }
+#nearby-list { margin: 0; padding-left: 1.5em; font-size: 13px; color: #52695b; }
+#nearby-list:not(:empty) { margin-top: 12px; }
+#nearby-list li + li { margin-top: 5px; }
+#nearby-list button { text-align: left; }
 .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .section-heading h2 { font-size: 19px; margin: 0; letter-spacing: -.03em; }
 .intersection-control { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #65796e; }
