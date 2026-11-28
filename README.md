@@ -9,14 +9,17 @@
     - [信号の時刻表をつくる 2025 (1/2) :: デイリーポータルZ](https://dailyportalz.jp/kiji/shingo-jikokuhyo2025)
 - 高度化PICS信号機の設置場所は、e-Govデータポータルの [高度化PICS整備交差点_csv](https://data.e-gov.go.jp/data/dataset/npa_20221124_0054/resource/6f7e83e1-be28-4030-961f-3b489c9f6ad8) にて公開されています
 
-## デモ
-https://github.com/user-attachments/assets/71077409-656c-471e-b071-970c37c89461
-
 ## Web Bluetooth版
 
 公開URL: [Web Bluetooth版を開く](https://yumu19.github.io/ble-pics-viewer/)
 
 リポジトリ直下に、ブラウザで動く版を用意しています。追加のライブラリやビルドは不要です。
+
+### Web版のデモ動画
+
+[Web版のデモ動画を見る（MP4）](assets/web-demo.mp4)
+
+### ローカルでの起動
 
 ```bash
 python3 -m http.server 8000 --bind 127.0.0.1
@@ -38,6 +41,10 @@ python python/ble-pics-viewer.py
 ```
 
 詳しくは [Python版の説明](python/README.md) を参照してください。
+
+### Python版のデモ動画
+
+https://github.com/user-attachments/assets/71077409-656c-471e-b071-970c37c89461
 
 ## 法令遵守に関する注記（Legal Notice）
 
